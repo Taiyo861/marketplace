@@ -1,19 +1,46 @@
-import { useEffect, useState } from "react";
+// src/App.jsx
+import React, { useEffect, useState } from "react";
+import { Routes, Route, Link } from "react-router-dom";
 
-function App() {
+// 🛒 Marketplace (Home)
+function Home() {
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [cart, setCart] = useState(() => {
+  const savedCart = localStorage.getItem("cart");
+  return savedCart ? JSON.parse(savedCart) : [];
+});
+  
 
-  // Fetch products
+  // fetch products
   useEffect(() => {
-    fetch("http://localhost:5000/api/products")
-      .then((res) => res.json())
-      .then(setProducts)
-      .catch((err) => console.error("❌ Fetch error:", err));
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/products");
+        const data = await res.json();
+        console.log("✅ Products fetched:", data);
+        setProducts(data);
+      } catch (err) {
+        console.error("❌ Fetch error:", err);
+      }
+    };
+    fetchProducts();
   }, []);
 
-  // Add to cart
+  // load cart from localStorage
+  useEffect(() => {
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+  }, []);
+
+  // save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  // add to cart
   const addToCart = (product) => {
     const existing = cart.find((item) => item._id === product._id);
     if (existing) {
@@ -29,66 +56,27 @@ function App() {
     }
   };
 
-  // Total price
+  // total price
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const formattedTotal = total.toFixed(2);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <header className="flex items-center justify-between px-6 py-4 bg-white shadow">
-        <h1 className="text-2xl font-bold text-blue-600">Threadly</h1>
-        <input
-          type="text"
-          placeholder="Search for anything"
-          className="w-1/2 border rounded-full px-4 py-2 text-gray-700 focus:outline-none focus:ring focus:ring-blue-300"
-        />
-        <div className="flex items-center gap-4">
-          <button className="text-gray-700 hover:text-blue-600">Log in</button>
-          <button className="text-gray-700 hover:text-blue-600">Sign up</button>
-          <button
-            onClick={() => setCartOpen(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Cart ({cart.length})
-          </button>
-        </div>
-      </header>
-
-      {/* Categories */}
-<nav className="flex justify-between px-20 py-4 bg-white border-b">
-  {[
-    { name: "Women", icon: "👗" },
-    { name: "Men", icon: "👕" },
-    { name: "Kids", icon: "🧒" },
-  ].map((cat) => (
-    <button
-      key={cat.name}
-      className="flex flex-col items-center text-gray-700 hover:text-blue-600 flex-1"
-    >
-      <span className="text-3xl">{cat.icon}</span>
-      <span className="text-sm">{cat.name}</span>
-    </button>
-  ))}
-</nav>
-
-
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-center py-10 text-3xl font-bold">
-        🎉 Welcome to Mercari Clone – 15% OFF Today!
-      </div>
-
+    <div className="p-8">
       {/* Product Grid */}
-      <main className="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
           <div
             key={product._id}
-            className="p-4 border rounded-lg bg-white shadow hover:shadow-lg transition"
+            className="p-4 border rounded-lg bg-white shadow hover:shadow-lg transition flex flex-col items-center"
           >
+
             <img
-              src={`http://localhost:5000${product.image}`}
-              alt={product.name}
-              className="w-full h-40 object-contain mb-3"
-            />
+  src={`http://localhost:5000${product.image}`}
+  alt={product.name}
+  className="w-48 h-48 object-cover mb-3 rounded"
+  onError={(e) => (e.target.src = "/fallback.jpg")}
+/>
+
             <h2 className="text-lg font-semibold">{product.name}</h2>
             <p className="text-gray-600">${product.price}</p>
             <button
@@ -99,9 +87,9 @@ function App() {
             </button>
           </div>
         ))}
-      </main>
+      </div>
 
-      {/* Cart Sidebar (to be added back later) */}
+      {/* Cart Sidebar */}
       {cartOpen && (
         <div className="fixed inset-0 flex justify-end bg-black bg-opacity-40">
           <div className="w-80 bg-white h-full shadow-lg p-6 flex flex-col">
@@ -116,25 +104,156 @@ function App() {
               <p className="text-gray-600">Cart is empty</p>
             ) : (
               <ul className="flex-1 overflow-y-auto">
-                {cart.map((item) => (
-                  <li
-                    key={item._id}
-                    className="flex justify-between items-center border-b py-2"
-                  >
-                    <span>
-                      {item.name} x {item.quantity}
-                    </span>
-                    <span>${item.price * item.quantity}</span>
-                  </li>
-                ))}
-              </ul>
+  {cart.map((item) => (
+    <li
+      key={item._id}
+      className="flex justify-between items-center border-b py-2"
+    >
+      <div>
+        {item.name} × {item.quantity}
+      </div>
+      <div>${(item.price * item.quantity).toFixed(2)}</div>
+      <div className="flex space-x-2 ml-4">
+        <button
+          onClick={() => setCart(cart.map(p => 
+            p._id === item._id && p.quantity > 1
+              ? { ...p, quantity: p.quantity - 1 }
+              : p._id === item._id && p.quantity === 1
+              ? null
+              : p
+          ).filter(Boolean))}
+          className="px-2 py-1 bg-gray-300 rounded hover:bg-gray-400"
+        >
+          -
+        </button>
+        <button
+          onClick={() =>
+            setCart(cart.map(p =>
+              p._id === item._id
+                ? { ...p, quantity: p.quantity + 1 }
+                : p
+            ))
+          }
+          className="px-2 py-1 bg-gray-300 rounded hover:bg-gray-400"
+        >
+          +
+        </button>
+        <button
+          onClick={() => setCart(cart.filter(p => p._id !== item._id))}
+          className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          Remove
+        </button>
+      </div>
+    </li>
+  ))}
+</ul>
+
+
+
             )}
-            <div className="mt-4 font-semibold text-lg">Total: ${total}</div>
+            <div className="mt-4 font-semibold text-lg">
+  Total: ${total.toFixed(2)}
+</div>
+
           </div>
         </div>
       )}
+
+      {/* Floating Cart Button */}
+      <button
+        onClick={() => setCartOpen(true)}
+        className="fixed bottom-6 right-6 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600"
+      >
+        Cart ({cart.length})
+      </button>
     </div>
   );
 }
 
-export default App;
+// 🔑 Login Page
+function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("✅ Logged in!");
+        localStorage.setItem("token", data.token);
+      } else {
+        alert("❌ " + data.message);
+      }
+    } catch (err) {
+      console.error("❌ Login error:", err);
+    }
+  };
+
+  return (
+    <div className="flex justify-center items-center h-screen bg-gray-50">
+      <form
+        onSubmit={handleLogin}
+        className="bg-white shadow-md rounded-lg p-8 w-96"
+      >
+        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full border px-4 py-2 mb-4 rounded"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full border px-4 py-2 mb-4 rounded"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+        >
+          Login
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// 🌐 App Layout
+export default function App() {
+  return (
+    <div>
+      {/* Navbar */}
+      <nav className="bg-gray-800 text-white p-4 flex justify-between">
+        <Link to="/" className="font-bold text-xl">
+          Threadly
+        </Link>
+        <div className="space-x-4">
+          <Link to="/" className="hover:underline">
+            Home
+          </Link>
+          <Link to="/login" className="hover:underline">
+            Login
+          </Link>
+        </div>
+      </nav>
+
+      {/* Routes */}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </div>
+  );
+}

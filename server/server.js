@@ -1,37 +1,53 @@
-// server/server.js
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const path = require("path");
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const connectDB = require("./db");
-const Product = require("./models/Product");
+import Product from "./models/Product.js";
+import authRoutes from "./routes/auth.js"; // import auth routes
 
-const app = express(); // ✅ define app before using it
+dotenv.config();
 
-// Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:5173" }));
+const app = express();
 app.use(express.json());
 
-// Serve static images
-app.use("/images", express.static(path.join(__dirname, "public/images")));
+// Enable CORS for frontend
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    credentials: true,
+  })
+);
 
-// Routes
+// For serving images
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use("/products", express.static(path.join(__dirname, "public/products")));
+
+// MongoDB connect
+mongoose
+  .connect(`${process.env.MONGO_URI}/${process.env.DB_NAME}`)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB error:", err));
+
+// Healthcheck
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// Products API
 app.get("/api/products", async (req, res) => {
   const products = await Product.find();
   res.json(products);
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
+// ✅ Auth routes
+app.use("/api/auth", authRoutes);
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`✅ Marketplace API is running on http://localhost:${PORT}`);
-  });
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () =>
+  console.log(`✅ Marketplace API running on http://localhost:${PORT}`)
+);
+
