@@ -1,12 +1,44 @@
-# React + Vite
+#  Threadly – Full-Stack Marketplace
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Threadly is a full-stack **e-commerce marketplace app** built with **React, Vite, TailwindCSS, Node.js, Express, and MongoDB**.  
+This project demonstrates modern frontend and backend development, JWT authentication, and a fully functional shopping cart system.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+##  Features
 
-## Expanding the ESLint configuration
+### Frontend (React + Vite)
+-  Product listing grid (images, names, prices, categories).
+-  Cart system with:
+  - Add/Remove products
+  - Increment/Decrement quantities
+  - Auto-remove items when quantity hits zero
+  - Persistent cart using **localStorage**
+-  Authentication UI (Login page with JWT support).
+-  Styled with **TailwindCSS** for responsive design.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Backend (Node.js + Express + MongoDB)
+-  REST API for products and users.
+-  User authentication with **JWT (JSON Web Tokens)**.
+-  MongoDB database with seeding script for demo products.
+-  Separate models for `Product` and `User`.
+
+---
+
+## Tech Stack
+
+- **Frontend:** React, Vite, TailwindCSS, React Router
+- **Backend:** Node.js, Express
+- **Database:** MongoDB Atlas
+- **Authentication:** JWT, bcryptjs
+- **Tools:** Git, Thunder Client (API testing), Nodemon
+
+---
+
+##  Getting Started
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/Taiyo861/marketplace.git
+cd marketplace
+
